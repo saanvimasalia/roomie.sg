@@ -25,6 +25,48 @@ export function formatHour(h: number): string {
   return `${h - 12}:00 PM`
 }
 
+export function getMatchReasons(me: import('../types').UserProfile, them: import('../types').UserProfile): string[] {
+  const reasons: string[] = []
+
+  if (me.needs_ac === them.needs_ac)
+    reasons.push(me.needs_ac ? 'Both need AC' : 'Neither needs AC')
+
+  if (me.smoking === them.smoking)
+    reasons.push(me.smoking ? 'Both smokers' : 'Both non-smokers')
+
+  if (me.diet !== 'none' && me.diet === them.diet)
+    reasons.push(`Both ${me.diet}`)
+
+  if (
+    me.hall_preference && them.hall_preference &&
+    me.hall_preference === them.hall_preference &&
+    me.hall_preference !== 'Any hall is fine'
+  )
+    reasons.push('Same hall preference')
+
+  const sleepDiff = Math.abs(me.sleep_time - them.sleep_time)
+  if (sleepDiff <= 2 || sleepDiff >= 22)
+    reasons.push('Similar sleep schedule')
+
+  const wakeDiff = Math.abs(me.wake_time - them.wake_time)
+  if (wakeDiff <= 2)
+    reasons.push('Similar wake time')
+
+  if (me.social_style === them.social_style || me.social_style === 'ambivert' || them.social_style === 'ambivert')
+    reasons.push('Compatible social style')
+
+  if (me.study_location === them.study_location)
+    reasons.push('Same study style')
+
+  if (me.prefers_quiet === them.prefers_quiet)
+    reasons.push(me.prefers_quiet ? 'Both prefer quiet' : 'Both okay with noise')
+
+  if (me.cleanliness === them.cleanliness)
+    reasons.push('Same cleanliness standard')
+
+  return reasons.slice(0, 5)
+}
+
 export function deriveUniversity(email: string): 'NUS' | 'NTU' | null {
   if (email.endsWith('@e.ntu.edu.sg') || email.endsWith('@ntu.edu.sg')) return 'NTU'
   if (

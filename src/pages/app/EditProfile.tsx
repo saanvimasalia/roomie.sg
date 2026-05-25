@@ -1,13 +1,14 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import OptionCard from '../../components/OptionCard'
 import Toggle from '../../components/Toggle'
 import Avatar from '../../components/Avatar'
 import { formatHour } from '../../lib/utils'
+import { supabase } from '../../lib/supabase'
 import type {
   Year, Semester, Diet, StudyLocation,
-  SocialStyle, GuestFrequency, Cleanliness, ConnectPlatform,
+  SocialStyle, GuestFrequency, Cleanliness, ConnectPlatform, ProfileWithScore,
 } from '../../types'
 
 // ─── Section header ────────────────────────────────────────────────────────────
@@ -52,41 +53,61 @@ const PROMPT_2_OPTIONS = [
   'A fun fact about me…',
 ]
 
+function buildForm(u: import('../../types').ProfileWithScore) {
+  return {
+    name:              u.name             ?? '',
+    age:               String(u.age       ?? ''),
+    year:              (u.year            ?? '') as import('../../types').Year | '',
+    faculty:           u.faculty          ?? '',
+    nationality:       u.nationality      ?? '',
+    photo_url:         u.photo_url,
+    hall_preference:   u.hall_preference  ?? '',
+    move_in_semester:  (u.move_in_semester ?? '') as import('../../types').Semester | '',
+    diet:              (u.diet            ?? '') as import('../../types').Diet | '',
+    wake_time:         u.wake_time        ?? 7,
+    sleep_time:        u.sleep_time       ?? 23,
+    study_location:    (u.study_location  ?? '') as import('../../types').StudyLocation | '',
+    social_style:      (u.social_style    ?? '') as import('../../types').SocialStyle | '',
+    guest_frequency:   (u.guest_frequency ?? '') as import('../../types').GuestFrequency | '',
+    cleanliness:       (u.cleanliness     ?? '') as import('../../types').Cleanliness | '',
+    smoking:           u.smoking          ?? false,
+    needs_ac:          u.needs_ac         ?? false,
+    cooks:             u.cooks            ?? false,
+    prefers_quiet:     u.prefers_quiet    ?? false,
+    has_pet:           u.has_pet          ?? false,
+    allergies:         u.allergies        ?? [],
+    allergies_other:   u.allergies_other  ?? '',
+    prompt_1_answer:   u.prompt_1_answer  ?? '',
+    prompt_2_question: u.prompt_2_question ?? '',
+    prompt_2_answer:   u.prompt_2_answer  ?? '',
+    connect_platform:  (u.connect_platform ?? 'telegram') as import('../../types').ConnectPlatform,
+    connect_handle:    u.connect_handle   ?? '',
+  }
+}
+
 export default function EditProfile() {
   const navigate = useNavigate()
-  const { currentUser, updateCurrentUser } = useAppContext()
+  const { currentUser, updateCurrentUser, loading } = useAppContext()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Initialise form from current user
-  const [form, setForm] = useState({
-    name:             currentUser.name,
-    age:              String(currentUser.age),
-    year:             currentUser.year as Year | '',
-    faculty:          currentUser.faculty,
-    nationality:      currentUser.nationality,
-    photo_url:        currentUser.photo_url,
-    hall_preference:  currentUser.hall_preference,
-    move_in_semester: currentUser.move_in_semester as Semester | '',
-    diet:             currentUser.diet as Diet | '',
-    wake_time:        currentUser.wake_time,
-    sleep_time:       currentUser.sleep_time,
-    study_location:   currentUser.study_location as StudyLocation | '',
-    social_style:     currentUser.social_style as SocialStyle | '',
-    guest_frequency:  currentUser.guest_frequency as GuestFrequency | '',
-    cleanliness:      currentUser.cleanliness as Cleanliness | '',
-    smoking:          currentUser.smoking,
-    needs_ac:         currentUser.needs_ac,
-    cooks:            currentUser.cooks,
-    prefers_quiet:    currentUser.prefers_quiet,
-    has_pet:          currentUser.has_pet,
-    allergies:        currentUser.allergies,
-    allergies_other:  currentUser.allergies_other ?? '',
-    prompt_1_answer:  currentUser.prompt_1_answer,
-    prompt_2_question: currentUser.prompt_2_question,
-    prompt_2_answer:  currentUser.prompt_2_answer,
-    connect_platform: currentUser.connect_platform as ConnectPlatform,
-    connect_handle:   currentUser.connect_handle ?? '',
-  })
+  // All hooks before any early return (React rules of hooks)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [saving, setSaving]       = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [form, setForm]           = useState(() => buildForm((currentUser ?? {}) as import('../../types').ProfileWithScore))
+
+  // Re-sync form when currentUser first loads
+  useEffect(() => {
+    if (currentUser) setForm(buildForm(currentUser))
+  }, [currentUser?.id])
+
+  if (loading || !currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <p className="font-dm text-wb2">Loading…</p>
+      </div>
+    )
+  }
 
   const set = <K extends keyof typeof form>(key: K, value: typeof form[K]) =>
     setForm(prev => ({ ...prev, [key]: value }))
@@ -100,39 +121,75 @@ export default function EditProfile() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) set('photo_url', URL.createObjectURL(file))
+    if (file) {
+      setPhotoFile(file)
+      set('photo_url', URL.createObjectURL(file))
+    }
   }
 
-  const handleSave = () => {
-    updateCurrentUser({
-      name:             form.name.trim(),
-      age:              Number(form.age),
-      year:             form.year as Year,
-      faculty:          form.faculty.trim(),
-      nationality:      form.nationality.trim(),
-      photo_url:        form.photo_url,
-      hall_preference:  form.hall_preference.trim(),
-      move_in_semester: form.move_in_semester as Semester,
-      diet:             form.diet as Diet,
-      wake_time:        form.wake_time,
-      sleep_time:       form.sleep_time,
-      study_location:   form.study_location as StudyLocation,
-      social_style:     form.social_style as SocialStyle,
-      guest_frequency:  form.guest_frequency as GuestFrequency,
-      cleanliness:      form.cleanliness as Cleanliness,
-      smoking:          form.smoking,
-      needs_ac:         form.needs_ac,
-      cooks:            form.cooks,
-      prefers_quiet:    form.prefers_quiet,
-      has_pet:          form.has_pet,
-      allergies:        form.allergies,
-      allergies_other:  form.allergies_other || null,
-      prompt_1_answer:  form.prompt_1_answer,
-      prompt_2_question: form.prompt_2_question,
-      prompt_2_answer:  form.prompt_2_answer,
-      connect_platform: form.connect_platform,
-      connect_handle:   form.connect_handle || null,
-    })
+  const handleSave = async () => {
+    setSaving(true)
+    setSaveError('')
+
+    let photoUrl = form.photo_url
+
+    if (photoFile) {
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(`${currentUser.id}/avatar`, photoFile, { upsert: true })
+      if (uploadError) {
+        setSaveError(`Photo upload: ${uploadError.message}`)
+        setSaving(false)
+        return
+      }
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(`${currentUser.id}/avatar`)
+      photoUrl = publicUrl
+    }
+
+    const updates = {
+      name:              form.name.trim() || null,
+      age:               form.age ? Number(form.age) : null,
+      year:              form.year || null,
+      faculty:           form.faculty.trim() || null,
+      nationality:       form.nationality.trim() || null,
+      photo_url:         photoUrl,
+      hall_preference:   form.hall_preference.trim() || null,
+      move_in_semester:  form.move_in_semester || null,
+      diet:              form.diet || null,
+      wake_time:         form.wake_time,
+      sleep_time:        form.sleep_time,
+      study_location:    form.study_location || null,
+      social_style:      form.social_style || null,
+      guest_frequency:   form.guest_frequency || null,
+      cleanliness:       form.cleanliness || null,
+      smoking:           form.smoking,
+      needs_ac:          form.needs_ac,
+      cooks:             form.cooks,
+      prefers_quiet:     form.prefers_quiet,
+      has_pet:           form.has_pet,
+      allergies:         form.allergies,
+      allergies_other:   form.allergies_other || null,
+      prompt_1_answer:   form.prompt_1_answer || null,
+      prompt_2_question: form.prompt_2_question || null,
+      prompt_2_answer:   form.prompt_2_answer || null,
+      connect_platform:  form.connect_platform,
+      connect_handle:    form.connect_handle || null,
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', currentUser.id)
+
+    if (error) {
+      setSaveError(`Profile save: ${error.message}`)
+      setSaving(false)
+      return
+    }
+
+    updateCurrentUser({ ...updates, photo_url: photoUrl } as Partial<ProfileWithScore>)
     navigate('/app/profile')
   }
 
@@ -151,9 +208,10 @@ export default function EditProfile() {
         <p className="font-syne text-base font-bold text-wb">Edit Profile</p>
         <button
           onClick={handleSave}
-          className="font-dm text-sm font-medium text-terra"
+          disabled={saving}
+          className="font-dm text-sm font-medium text-terra disabled:opacity-40"
         >
-          Save
+          {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
 
@@ -249,11 +307,11 @@ export default function EditProfile() {
 
         {/* ── Routine ─────────────────────────── */}
         <Section title="Daily routine" />
-        <TimeSlider label="Wake up time" value={form.wake_time} min={4} max={12}
+        <TimeSlider label="Wake up time" value={form.wake_time} min={0} max={23}
           onChange={v => set('wake_time', v)} />
-        <TimeSlider label="Bedtime" value={form.sleep_time > 23 ? form.sleep_time : form.sleep_time}
-          min={20} max={30}
-          onChange={v => set('sleep_time', v > 23 ? v - 24 : v)} />
+        <TimeSlider label="Bedtime" value={form.sleep_time} min={0} max={23}
+          onChange={v => set('sleep_time', v)} />
+        <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide">Where do you usually study?</p>
         {([
           { value: 'room',    label: 'In my room',           emoji: '🏠' },
           { value: 'library', label: 'Library',              emoji: '📚' },
@@ -391,11 +449,15 @@ export default function EditProfile() {
         )}
 
         {/* ── Save button ─────────────────────── */}
+        {saveError && (
+          <p className="font-dm text-xs text-red-500 text-center">{saveError}</p>
+        )}
         <button
           onClick={handleSave}
-          className="w-full bg-terra text-white font-dm font-medium py-4 rounded-2xl mt-2 active:scale-[0.98] transition-transform"
+          disabled={saving}
+          className="w-full bg-terra text-white font-dm font-medium py-4 rounded-2xl mt-2 active:scale-[0.98] transition-transform disabled:opacity-60"
         >
-          Save changes
+          {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
     </div>

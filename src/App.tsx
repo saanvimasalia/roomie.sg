@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import BottomNav from './components/BottomNav'
 import { OnboardingProvider } from './context/OnboardingContext'
 import { AppProvider } from './context/AppContext'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import AuthCallback from './pages/AuthCallback'
 
 // Onboarding pages
 import Splash from './pages/onboarding/Splash'
@@ -41,7 +44,11 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
       <Routes>
+        {/* Auth callback — handles magic link redirects */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
         {/* Onboarding */}
         <Route
           path="/onboarding"
@@ -69,8 +76,8 @@ export default function App() {
           <Route path="connect" element={<Connect />} />
         </Route>
 
-        {/* Main app */}
-        <Route path="/app" element={<AppShell />}>
+        {/* Main app — protected, requires active session */}
+        <Route path="/app" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
           <Route index element={<Navigate to="discover" replace />} />
           <Route path="discover" element={<Discover />} />
           <Route path="activity" element={<Activity />} />
@@ -82,6 +89,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/onboarding/splash" replace />} />
       </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

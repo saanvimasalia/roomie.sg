@@ -1,7 +1,27 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Splash() {
   const navigate = useNavigate()
+  const { session, loading } = useAuth()
+
+  // If already logged in, skip straight to the app
+  useEffect(() => {
+    if (!loading && session) {
+      navigate('/app/discover', { replace: true })
+    }
+  }, [session, loading, navigate])
+
+  const handleSignUp = () => {
+    localStorage.setItem('auth_intent', 'signup')
+    navigate('/onboarding/verify')
+  }
+
+  const handleLogIn = () => {
+    localStorage.setItem('auth_intent', 'login')
+    navigate('/onboarding/verify')
+  }
 
   return (
     <div className="min-h-screen flex flex-col px-6">
@@ -21,13 +41,13 @@ export default function Splash() {
       {/* Actions */}
       <div className="pb-14 flex flex-col gap-3">
         <button
-          onClick={() => navigate('/onboarding/verify')}
+          onClick={handleSignUp}
           className="w-full bg-terra text-white font-dm font-medium py-4 rounded-2xl text-base active:scale-[0.98] transition-transform"
         >
           Create account
         </button>
         <button
-          onClick={() => navigate('/app/discover')}
+          onClick={handleLogIn}
           className="w-full bg-sand text-wb font-dm font-medium py-4 rounded-2xl text-base active:scale-[0.98] transition-transform"
         >
           Log in
@@ -35,6 +55,25 @@ export default function Splash() {
         <p className="font-dm text-xs text-wb3 text-center mt-2">
           Only .nus.edu.sg and .ntu.edu.sg emails
         </p>
+
+        {/* ── Dev bypass (remove before launch) ── */}
+        <div className="mt-4 pt-4 border-t border-sand flex flex-col gap-2">
+          <p className="font-dm text-xs text-wb3 text-center">Dev only</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { localStorage.setItem('dev_bypass', 'true'); navigate('/onboarding/basic-info') }}
+              className="flex-1 bg-wb3/20 text-wb2 font-dm text-xs font-medium py-2.5 rounded-xl active:scale-95 transition-transform"
+            >
+              Temp create account
+            </button>
+            <button
+              onClick={() => { localStorage.setItem('dev_bypass', 'true'); navigate('/app/discover') }}
+              className="flex-1 bg-wb3/20 text-wb2 font-dm text-xs font-medium py-2.5 rounded-xl active:scale-95 transition-transform"
+            >
+              Temp log in
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

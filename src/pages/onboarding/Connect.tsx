@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useOnboarding } from '../../context/OnboardingContext'
 import OnboardingLayout from '../../components/OnboardingLayout'
@@ -6,12 +7,21 @@ import type { ConnectPlatform } from '../../types'
 export default function Connect() {
   const navigate = useNavigate()
   const { data, update, submitProfile } = useOnboarding()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const isValid = data.connect_handle.trim() !== ''
 
-  const handleDone = () => {
-    submitProfile()
-    navigate('/app/discover')
+  const handleDone = async () => {
+    setLoading(true)
+    setError('')
+    const { error: submitError } = await submitProfile()
+    setLoading(false)
+    if (submitError) {
+      setError(submitError)
+      return
+    }
+    navigate('/app/discover', { replace: true })
   }
 
   const platforms: { value: ConnectPlatform; label: string; color: string }[] = [
@@ -25,8 +35,8 @@ export default function Connect() {
       title="How should they reach you?"
       subtitle="Only visible to mutual matches."
       onNext={handleDone}
-      nextLabel="Let's go 🎉"
-      nextDisabled={!isValid}
+      nextLabel={loading ? 'Saving…' : "Let's go 🎉"}
+      nextDisabled={!isValid || loading}
     >
       <div className="flex flex-col gap-5">
         {/* Platform toggle */}
@@ -75,6 +85,10 @@ export default function Connect() {
               : 'Include country code, e.g. +65'}
           </p>
         </div>
+
+        {error && (
+          <p className="font-dm text-xs text-red-500 mt-1">{error}</p>
+        )}
 
         {/* Preview */}
         {isValid && (

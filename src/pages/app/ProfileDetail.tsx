@@ -79,9 +79,7 @@ export default function ProfileDetail() {
   const isLiked = likedIds.includes(profile.id)
   const isMutual = mutualMatchIds.includes(profile.id)
 
-  const handleLike = () => {
-    toggleLike(profile.id)
-  }
+  const handleLike = () => { toggleLike(profile.id) }
 
   const booleanHabits: { emoji: string; label: string; value: boolean }[] = [
     { emoji: '🚬', label: 'Smokes',          value: profile.smoking },
@@ -244,10 +242,12 @@ export default function ProfileDetail() {
             <p className="font-syne text-sm font-bold text-wb mb-2">A little about me…</p>
             <p className="font-dm text-sm text-wb2 leading-relaxed">{profile.prompt_1_answer}</p>
           </div>
-          <div className="bg-sand rounded-2xl px-4 py-4">
-            <p className="font-syne text-sm font-bold text-wb mb-2">{profile.prompt_2_question}</p>
-            <p className="font-dm text-sm text-wb2 leading-relaxed">{profile.prompt_2_answer}</p>
-          </div>
+          {profile.prompt_2_question && (
+            <div className="bg-sand rounded-2xl px-4 py-4">
+              <p className="font-syne text-sm font-bold text-wb mb-2">{profile.prompt_2_question}</p>
+              <p className="font-dm text-sm text-wb2 leading-relaxed">{profile.prompt_2_answer}</p>
+            </div>
+          )}
         </div>
 
         {/* Connect button — only for mutual matches */}
@@ -297,7 +297,7 @@ export default function ProfileDetail() {
       </div>
 
       {/* Connect modal */}
-      {connectOpen && (
+      {connectOpen && currentUser && (
         <ConnectModal
           profile={profile}
           currentUser={currentUser}

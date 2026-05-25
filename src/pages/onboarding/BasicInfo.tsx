@@ -8,7 +8,7 @@ const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad']
 
 export default function BasicInfo() {
   const navigate = useNavigate()
-  const { data, update } = useOnboarding()
+  const { data, update, setPhotoFile } = useOnboarding()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isValid =
@@ -23,8 +23,8 @@ export default function BasicInfo() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const url = URL.createObjectURL(file)
-      update({ photo_url: url })
+      setPhotoFile(file)
+      update({ photo_url: URL.createObjectURL(file) })
     }
   }
 

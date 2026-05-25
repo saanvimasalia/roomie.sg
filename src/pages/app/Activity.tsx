@@ -42,19 +42,19 @@ const ACTIVITY_META: Record<ActivityType['type'], ActivityMeta> = {
   new_like: {
     icon:    <HeartIcon />,
     iconBg:  'bg-terra',
-    text:    name => `${name} liked your profile`,
+    text:    _ => 'liked your profile',
     cta:     'View',
   },
   new_match: {
     icon:    <StarIcon />,
     iconBg:  'bg-terra',
-    text:    name => `You matched with ${name}!`,
+    text:    _ => "— it's a match! 🎉",
     cta:     'Connect',
   },
   connected: {
     icon:    <LinkIcon />,
     iconBg:  'bg-sage',
-    text:    name => `${name} viewed your contact details`,
+    text:    _ => 'viewed your contact details',
   },
 }
 
@@ -91,7 +91,7 @@ function ActivityItem({ activity, wasUnread, actorName, actorPhotoUrl, actorId, 
         <p className="font-dm text-sm text-wb leading-snug">
           <span className="font-semibold">{actorName}</span>
           {' '}
-          {meta.text('').replace(actorName, '').trim() || meta.text(actorName).replace(actorName, '')}
+          {meta.text(actorName)}
         </p>
         <p className="font-dm text-xs text-wb3 mt-0.5">{timeAgo(activity.created_at)}</p>
       </div>
@@ -120,7 +120,7 @@ type BucketLabel = 'Today' | 'Yesterday' | 'Earlier'
 
 export default function Activity() {
   const navigate = useNavigate()
-  const { activities, profiles, markActivitiesRead } = useAppContext()
+  const { activities, actorProfileMap, markActivitiesRead } = useAppContext()
 
   // Capture which items were unread on mount — keep highlight visible during visit
   const [initialUnreadIds] = useState<string[]>(
@@ -132,9 +132,6 @@ export default function Activity() {
     const t = setTimeout(markActivitiesRead, 600)
     return () => clearTimeout(t)
   }, [markActivitiesRead])
-
-  // Build a profile lookup map
-  const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]))
 
   // Sort newest first
   const sorted = [...activities].sort(
@@ -174,7 +171,7 @@ export default function Activity() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {buckets[bucket].map(item => {
-                    const actor = profileMap[item.actor_id]
+                    const actor = actorProfileMap[item.actor_id]
                     if (!actor) return null
                     return (
                       <ActivityItem

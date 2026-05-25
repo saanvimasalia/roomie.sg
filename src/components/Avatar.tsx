@@ -7,7 +7,7 @@ const PALETTES = [
 ]
 
 function palette(userId: string) {
-  const sum = userId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  const sum = (userId ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
   return PALETTES[sum % PALETTES.length]
 }
 
@@ -38,7 +38,7 @@ export default function Avatar({ photoUrl, name, userId, size = 48, className = 
             className="font-syne font-bold text-white select-none"
             style={{ fontSize: size * 0.38 }}
           >
-            {name.charAt(0).toUpperCase()}
+            {(name ?? '?').charAt(0).toUpperCase()}
           </span>
         </div>
       )}

@@ -67,20 +67,17 @@ export default function Routine() {
           <TimeSlider
             label="Wake up time"
             value={data.wake_time}
-            min={4}
-            max={12}
+            min={0}
+            max={23}
             onChange={v => update({ wake_time: v })}
           />
           <TimeSlider
             label="Bedtime"
             value={data.sleep_time}
-            min={20}
-            max={30}
-            onChange={v => update({ sleep_time: v > 23 ? v - 24 : v })}
+            min={0}
+            max={23}
+            onChange={v => update({ sleep_time: v })}
           />
-          <p className="font-dm text-xs text-wb3 -mt-1 px-1">
-            Bedtime past midnight: {data.sleep_time <= 6 ? `${formatHour(data.sleep_time)} (next day)` : formatHour(data.sleep_time)}
-          </p>
         </div>
 
         {/* Study location */}

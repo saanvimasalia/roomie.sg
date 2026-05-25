@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ProfileWithScore } from '../types'
+import { supabase } from '../lib/supabase'
 
 type Props = {
   profile: ProfileWithScore
@@ -37,6 +38,10 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
   }
 
   const handleOpen = () => {
+    supabase.rpc('log_connect', {
+      p_connector_id: currentUser.id,
+      p_connected_to_id: profile.id,
+    })
     window.open(deepLink, '_blank')
     onClose()
   }

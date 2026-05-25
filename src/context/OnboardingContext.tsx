@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import type {
   University,
   Year,
@@ -10,6 +10,8 @@ import type {
   Cleanliness,
   ConnectPlatform,
 } from '../types'
+import { supabase } from '../lib/supabase'
+import { deriveUniversity } from '../lib/utils'
 
 export type OnboardingData = {
   email: string
@@ -79,27 +81,111 @@ type OnboardingContextType = {
   data: OnboardingData
   update: (fields: Partial<OnboardingData>) => void
   reset: () => void
-  submitProfile: () => void
+  setPhotoFile: (file: File | null) => void
+  submitProfile: () => Promise<{ error: string | null }>
 }
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null)
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<OnboardingData>(defaultData)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+
+  // Pre-populate email + university from the active auth session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const email = session?.user?.email
+      if (email) {
+        const university = deriveUniversity(email)
+        if (university) setData(prev => ({ ...prev, email, university }))
+      }
+    })
+  }, [])
 
   const update = (fields: Partial<OnboardingData>) => {
     setData(prev => ({ ...prev, ...fields }))
   }
 
-  const reset = () => setData(defaultData)
+  const reset = () => {
+    setData(defaultData)
+    setPhotoFile(null)
+  }
 
-  const submitProfile = () => {
-    // Step 9 wires this to Supabase — log for now
-    console.log('Submitting profile:', data)
+  const submitProfile = async (): Promise<{ error: string | null }> => {
+    if (localStorage.getItem('dev_bypass') === 'true') {
+      reset()
+      return { error: null }
+    }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) return { error: 'Not signed in.' }
+
+    let photoUrl: string | null = null
+
+    if (photoFile) {
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(`${user.id}/avatar`, photoFile, { upsert: true })
+
+      if (uploadError) return { error: uploadError.message }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(`${user.id}/avatar`)
+
+      photoUrl = publicUrl
+    }
+
+    const { error: insertError } = await supabase.from('profiles').upsert({
+      id: user.id,
+      email: data.email,
+      university: data.university,
+      name: data.name,
+      age: data.age ? Number(data.age) : null,
+      year: data.year || null,
+      faculty: data.faculty || null,
+      nationality: data.nationality || null,
+      photo_url: photoUrl,
+      hall_preference: data.hall_preference || null,
+      move_in_semester: data.move_in_semester || null,
+      diet: data.diet || null,
+      wake_time: data.wake_time,
+      sleep_time: data.sleep_time,
+      study_location: data.study_location || null,
+      social_style: data.social_style || null,
+      guest_frequency: data.guest_frequency || null,
+      cleanliness: data.cleanliness || null,
+      smoking: data.smoking,
+      needs_ac: data.needs_ac,
+      cooks: data.cooks,
+      prefers_quiet: data.prefers_quiet,
+      has_pet: data.has_pet,
+      allergies: data.allergies,
+      allergies_other: data.allergies_other || null,
+      prompt_1_answer: data.prompt_1_answer,
+      prompt_2_question: data.prompt_2_question,
+      prompt_2_answer: data.prompt_2_answer,
+      connect_platform: data.connect_platform,
+      connect_handle: data.connect_handle || null,
+      is_paused: false,
+      is_verified: true,
+    })
+
+    if (insertError) return { error: insertError.message }
+
+    // Set the user's chosen password (stored in localStorage during signup)
+    const chosenPassword = localStorage.getItem('signup_password')
+    if (chosenPassword) {
+      await supabase.auth.updateUser({ password: chosenPassword })
+      localStorage.removeItem('signup_password')
+    }
+
+    reset()
+    return { error: null }
   }
 
   return (
-    <OnboardingContext.Provider value={{ data, update, reset, submitProfile }}>
+    <OnboardingContext.Provider value={{ data, update, reset, setPhotoFile, submitProfile }}>
       {children}
     </OnboardingContext.Provider>
   )
