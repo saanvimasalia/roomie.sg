@@ -173,13 +173,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     if (insertError) return { error: insertError.message }
 
-    // Set the user's chosen password (stored in localStorage during signup)
-    const chosenPassword = localStorage.getItem('signup_password')
-    if (chosenPassword) {
-      await supabase.auth.updateUser({ password: chosenPassword })
-      localStorage.removeItem('signup_password')
-    }
-
     reset()
     return { error: null }
   }

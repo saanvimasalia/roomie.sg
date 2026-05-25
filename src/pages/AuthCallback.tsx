@@ -11,6 +11,14 @@ export default function AuthCallback() {
         subscription.unsubscribe()
         localStorage.removeItem('auth_intent')
 
+        // Set the password immediately after email verification so it's never
+        // left sitting in localStorage longer than necessary
+        const chosenPassword = localStorage.getItem('signup_password')
+        if (chosenPassword) {
+          await supabase.auth.updateUser({ password: chosenPassword })
+          localStorage.removeItem('signup_password')
+        }
+
         // Check if the user has completed onboarding (name is set)
         const { data: profile } = await supabase
           .from('profiles')
