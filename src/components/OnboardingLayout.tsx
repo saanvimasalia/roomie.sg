@@ -58,20 +58,20 @@ export default function OnboardingLayout({
         </p>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-5 pb-36">
+      {/* Content */}
+      <div className="flex-1 px-5">
         <h2 className="font-syne text-2xl font-bold text-wb mt-2">{title}</h2>
         {subtitle && <p className="font-dm text-sm text-wb2 mt-1 mb-6">{subtitle}</p>}
         {!subtitle && <div className="mb-6" />}
         {children}
       </div>
 
-      {/* Fixed footer button */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-5 pb-10 pt-5 bg-gradient-to-t from-cream via-cream to-transparent pointer-events-none">
+      {/* Footer button — in normal flow, scrolls with page */}
+      <div className="px-5 pb-10 pt-5">
         <button
           onClick={onNext}
           disabled={nextDisabled}
-          className={`w-full py-4 rounded-2xl font-dm font-medium text-base pointer-events-auto transition-all ${
+          className={`w-full py-4 rounded-2xl font-dm font-medium text-base transition-all ${
             nextDisabled
               ? 'bg-sand text-wb3 cursor-not-allowed'
               : 'bg-terra text-white active:scale-[0.98]'
