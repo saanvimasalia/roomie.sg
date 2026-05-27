@@ -29,7 +29,7 @@ export default function OnboardingLayout({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <div className="px-5 pt-14 pb-3 flex-shrink-0">
+      <div className="px-5 pt-10 pb-3 flex-shrink-0">
         <button
           onClick={() => navigate(-1)}
           className="text-wb2 p-1 -ml-1 mb-4 flex items-center"
@@ -67,7 +67,7 @@ export default function OnboardingLayout({
       </div>
 
       {/* Fixed footer button */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-10 pt-5 bg-gradient-to-t from-cream via-cream to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-5 pb-10 pt-5 bg-gradient-to-t from-cream via-cream to-transparent pointer-events-none">
         <button
           onClick={onNext}
           disabled={nextDisabled}

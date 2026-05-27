@@ -15,7 +15,7 @@ function buildDeepLink(profile: ProfileWithScore): string {
   }
   // WhatsApp: strip everything except digits
   const digits = (profile.connect_handle ?? '').replace(/\D/g, '')
-  return `https://wa.me/${digits}`
+  return digits ? `https://wa.me/${digits}` : 'https://wa.me'
 }
 
 function buildIntroMessage(me: ProfileWithScore, them: ProfileWithScore): string {
@@ -55,7 +55,7 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative w-full max-w-[430px] bg-cream rounded-t-3xl px-5 pt-5 pb-10 animate-slide-up">
+      <div className="relative w-full max-w-[480px] bg-cream rounded-t-3xl px-5 pt-5 pb-10 animate-slide-up">
         {/* Handle */}
         <div className="w-10 h-1 bg-wb3 rounded-full mx-auto mb-5" />
 

@@ -6,31 +6,32 @@ export default function AuthCallback() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+    async function handleSession(session: import('@supabase/supabase-js').Session) {
+      localStorage.removeItem('auth_intent')
+
+      const chosenPassword = localStorage.getItem('signup_password')
+      if (chosenPassword) {
+        await supabase.auth.updateUser({ password: chosenPassword })
+        localStorage.removeItem('signup_password')
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile?.name) {
+        navigate('/app/discover', { replace: true })
+      } else {
+        navigate('/onboarding/basic-info', { replace: true })
+      }
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         subscription.unsubscribe()
-        localStorage.removeItem('auth_intent')
-
-        // Set the password immediately after email verification so it's never
-        // left sitting in localStorage longer than necessary
-        const chosenPassword = localStorage.getItem('signup_password')
-        if (chosenPassword) {
-          await supabase.auth.updateUser({ password: chosenPassword })
-          localStorage.removeItem('signup_password')
-        }
-
-        // Check if the user has completed onboarding (name is set)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', session.user.id)
-          .single()
-
-        if (profile?.name) {
-          navigate('/app/discover', { replace: true })
-        } else {
-          navigate('/onboarding/basic-info', { replace: true })
-        }
+        handleSession(session)
       } else if (event === 'INITIAL_SESSION' && !session) {
         navigate('/onboarding/splash', { replace: true })
       }

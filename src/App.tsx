@@ -29,8 +29,8 @@ import ProfileDetail from './pages/app/ProfileDetail'
 function AppShell() {
   return (
     <AppProvider>
-      <div className="min-h-screen bg-stone-100">
-        <div className="relative mx-auto w-full max-w-[430px] min-h-screen bg-cream shadow-xl">
+      <div className="min-h-screen bg-terra">
+        <div className="relative mx-auto w-full max-w-[480px] min-h-screen bg-cream shadow-xl">
           <div className="pb-16">
             <Outlet />
           </div>
@@ -55,7 +55,7 @@ export default function App() {
           element={
             <OnboardingProvider>
               <div className="min-h-screen bg-stone-100">
-                <div className="relative mx-auto w-full max-w-[430px] min-h-screen bg-cream shadow-xl">
+                <div className="relative mx-auto w-full max-w-full sm:max-w-[560px] lg:max-w-[680px] min-h-screen bg-cream shadow-xl">
                   <Outlet />
                 </div>
               </div>

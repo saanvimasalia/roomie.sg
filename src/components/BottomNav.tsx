@@ -6,7 +6,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
-      <div className="w-full max-w-[430px] bg-cream border-t border-sand flex justify-around items-center h-16 px-6">
+      <div className="w-full max-w-[480px] bg-cream border-t border-sand flex justify-around items-center h-16 px-6">
         {/* Discover */}
         <NavLink
           to="/app/discover"
@@ -20,7 +20,7 @@ export default function BottomNav() {
             <circle cx="11" cy="11" r="8" />
             <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
           </svg>
-          <span className="font-dm text-[10px] font-medium">Discover</span>
+          <span className="font-dm text-[11px] font-medium">Discover</span>
         </NavLink>
 
         {/* Activity */}
@@ -42,7 +42,7 @@ export default function BottomNav() {
               </span>
             )}
           </div>
-          <span className="font-dm text-[10px] font-medium">Activity</span>
+          <span className="font-dm text-[11px] font-medium">Activity</span>
         </NavLink>
 
         {/* Profile */}
@@ -57,7 +57,7 @@ export default function BottomNav() {
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span className="font-dm text-[10px] font-medium">Profile</span>
+          <span className="font-dm text-[11px] font-medium">Profile</span>
         </NavLink>
       </div>
     </nav>
