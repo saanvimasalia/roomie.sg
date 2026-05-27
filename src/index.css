@@ -35,3 +35,12 @@
 .animate-fade-in {
   animation: fade-in 0.25s ease forwards;
 }
+
+.bg-blobs {
+  background-color: #FAF7F2;
+  background-image:
+    radial-gradient(ellipse 65% 55% at 10% 15%, #C8E0CB 0%, transparent 65%),
+    radial-gradient(ellipse 55% 65% at 90% 80%, #F2CEBC 0%, transparent 65%),
+    radial-gradient(ellipse 50% 50% at 70% 20%, #D4E8D6 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 25% 85%, #F5D9C8 0%, transparent 60%);
+}
