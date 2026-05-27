@@ -149,7 +149,7 @@ export default function Activity() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
-      <div className="px-5 pt-14 pb-4 flex-shrink-0">
+      <div className="px-5 pt-10 pb-4 flex items-center justify-between flex-shrink-0">
         <h1 className="font-syne text-2xl font-bold text-wb">Activity</h1>
         {initialUnreadIds.length > 0 && (
           <p className="font-dm text-sm text-wb2 mt-0.5">

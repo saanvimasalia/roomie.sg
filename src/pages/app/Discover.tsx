@@ -138,8 +138,8 @@ export default function Discover() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
-      <div className="px-5 pt-10 pb-3 flex items-center justify-between flex-shrink-0">
-        <h1 className="font-syne text-2xl font-extrabold text-wb tracking-tight">roomie.sg</h1>
+      <div className="px-5 pt-10 pb-4 flex items-center justify-between flex-shrink-0">
+        <h1 className="font-syne text-2xl font-bold text-wb">roomie.sg</h1>
         <button
           onClick={() => setFilterOpen(true)}
           className={`relative w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 transition-transform ${
