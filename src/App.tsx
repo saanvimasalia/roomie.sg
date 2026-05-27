@@ -29,7 +29,7 @@ import ProfileDetail from './pages/app/ProfileDetail'
 function AppShell() {
   return (
     <AppProvider>
-      <div className="min-h-screen bg-terra">
+      <div className="min-h-screen bg-stone-100">
         <div className="relative mx-auto w-full max-w-[480px] min-h-screen bg-cream shadow-xl">
           <div className="pb-16">
             <Outlet />
