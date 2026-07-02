@@ -72,10 +72,14 @@ export function computeScore(
     if (me.prefers_quiet) reasons.push('Both prefer quiet')
   }
 
-  // Study location — 5 pts
-  if (me.study_location === other.study_location) {
-    pts += 5
-    reasons.push('Same study style')
+  // Study location — 5 pts (any overlap counts)
+  if (me.study_location && other.study_location) {
+    const myLocs = me.study_location.split(', ')
+    const theirLocs = other.study_location.split(', ')
+    if (myLocs.some(l => theirLocs.includes(l))) {
+      pts += 5
+      reasons.push('Same study style')
+    }
   }
 
   // Cooks — 2 pts
