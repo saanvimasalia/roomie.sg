@@ -91,6 +91,69 @@ const COUNTRY_CODES = [
   { code: '+84',  label: 'Vietnam (+84)' },
 ]
 
+const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad', 'Exchange']
+
+const FACULTIES = [
+  'Asian School of the Environment (ASE)',
+  'College of Computing and Data Science (CCDS)',
+  'Lee Kong Chian School of Medicine (LKCMedicine)',
+  'Nanyang Business School (NBS)',
+  'National Institute of Education (NIE)',
+  'School of Art, Design and Media (ADM)',
+  'School of Biological Sciences (SBS)',
+  'School of Chemical & Biomedical Engineering (SCBE)',
+  'School of Civil & Environmental Engineering (CEE)',
+  'School of Electrical & Electronic Engineering (EEE)',
+  'School of Humanities (SoH)',
+  'School of Materials Science & Engineering (MSE)',
+  'School of Mechanical & Aerospace Engineering (MAE)',
+  'School of Physical & Mathematical Sciences (SPMS)',
+  'School of Social Sciences (SSS)',
+  'Wee Kim Wee School of Communication and Information (WKWSCI)',
+]
+
+const NATIONALITIES = [
+  'Afghan', 'Albanian', 'Algerian', 'American', 'Andorran', 'Angolan', 'Argentinian',
+  'Armenian', 'Australian', 'Austrian', 'Azerbaijani', 'Bahraini', 'Bangladeshi',
+  'Belarusian', 'Belgian', 'Belizean', 'Beninese', 'Bhutanese', 'Bolivian',
+  'Bosnian', 'Botswanan', 'Brazilian', 'British', 'Bruneian', 'Bulgarian',
+  'Burkinabe', 'Burmese', 'Burundian', 'Cambodian', 'Cameroonian', 'Canadian',
+  'Cape Verdean', 'Central African', 'Chadian', 'Chilean', 'Chinese', 'Colombian',
+  'Comorian', 'Congolese', 'Costa Rican', 'Croatian', 'Cuban', 'Cypriot', 'Czech',
+  'Danish', 'Djiboutian', 'Dominican', 'Dutch', 'Ecuadorian', 'Egyptian',
+  'Emirati', 'Eritrean', 'Estonian', 'Ethiopian', 'Fijian', 'Finnish', 'French',
+  'Gabonese', 'Gambian', 'Georgian', 'German', 'Ghanaian', 'Greek', 'Guatemalan',
+  'Guinean', 'Haitian', 'Honduran', 'Hungarian', 'Icelandic', 'Indian',
+  'Indonesian', 'Iranian', 'Iraqi', 'Irish', 'Israeli', 'Italian', 'Ivorian',
+  'Jamaican', 'Japanese', 'Jordanian', 'Kazakh', 'Kenyan', 'Korean', 'Kuwaiti',
+  'Kyrgyz', 'Laotian', 'Latvian', 'Lebanese', 'Liberian', 'Libyan', 'Lithuanian',
+  'Luxembourgish', 'Macedonian', 'Malagasy', 'Malawian', 'Malaysian', 'Maldivian',
+  'Malian', 'Maltese', 'Mauritanian', 'Mauritian', 'Mexican', 'Moldovan',
+  'Mongolian', 'Montenegrin', 'Moroccan', 'Mozambican', 'Namibian', 'Nepali',
+  'New Zealander', 'Nicaraguan', 'Nigerien', 'Nigerian', 'Norwegian', 'Omani',
+  'Pakistani', 'Palestinian', 'Panamanian', 'Paraguayan', 'Peruvian', 'Filipino',
+  'Polish', 'Portuguese', 'Qatari', 'Romanian', 'Russian', 'Rwandan', 'Saudi',
+  'Senegalese', 'Serbian', 'Sierra Leonean', 'Singaporean', 'Slovak', 'Slovenian',
+  'Somali', 'South African', 'Spanish', 'Sri Lankan', 'Sudanese', 'Swedish',
+  'Swiss', 'Syrian', 'Taiwanese', 'Tajik', 'Tanzanian', 'Thai', 'Togolese',
+  'Trinidadian', 'Tunisian', 'Turkish', 'Turkmen', 'Ugandan', 'Ukrainian',
+  'Uruguayan', 'Uzbek', 'Venezuelan', 'Vietnamese', 'Yemeni', 'Zambian', 'Zimbabwean',
+]
+
+const NTU_HALLS = [
+  'Hall 1', 'Hall 2', 'Hall 3', 'Hall 4', 'Hall 5', 'Hall 6',
+  'Hall 7', 'Hall 8', 'Hall 9', 'Hall 10', 'Hall 11', 'Hall 12',
+  'Hall 13', 'Hall 14', 'Hall 15', 'Hall 16',
+  'Crescent Hall', 'Pioneer Hall', 'Binjai Hall',
+  'Tanjong Hall', 'Banyan Hall', 'Tamarind Hall', 'Saraca Hall',
+]
+
+const STUDY_OPTIONS: { value: StudyLocation; label: string; emoji: string }[] = [
+  { value: 'room',    label: 'In my room',           emoji: '🏠' },
+  { value: 'library', label: 'Library',              emoji: '📚' },
+  { value: 'cafes',   label: 'Cafes & hangout spots', emoji: '☕' },
+]
+
 // ─── Section header ────────────────────────────────────────────────────────────
 function Section({ title }: { title: string }) {
   return (
@@ -141,12 +204,13 @@ function buildForm(u: import('../../types').ProfileWithScore) {
     faculty:           u.faculty          ?? '',
     nationality:       u.nationality      ?? '',
     photo_url:         u.photo_url,
-    hall_preference:   u.hall_preference  ?? '',
+    hall_preference:   u.hall_preference ? u.hall_preference.split(', ').filter(Boolean) : [] as string[],
+    hall_points:       (u.hall_points ?? '') as number | '',
     move_in_semester:  (u.move_in_semester ?? '') as import('../../types').Semester | '',
     diet:              (u.diet            ?? '') as import('../../types').Diet | '',
     wake_time:         u.wake_time        ?? 7,
     sleep_time:        u.sleep_time       ?? 23,
-    study_location:    (u.study_location  ?? '') as import('../../types').StudyLocation | '',
+    study_location:    u.study_location ? u.study_location.split(', ').filter(Boolean) as import('../../types').StudyLocation[] : [] as import('../../types').StudyLocation[],
     social_style:      (u.social_style    ?? '') as import('../../types').SocialStyle | '',
     guest_frequency:   (u.guest_frequency ?? '') as import('../../types').GuestFrequency | '',
     cleanliness:       (u.cleanliness     ?? '') as import('../../types').Cleanliness | '',
@@ -237,12 +301,13 @@ export default function EditProfile() {
       faculty:           form.faculty.trim() || null,
       nationality:       form.nationality.trim() || null,
       photo_url:         photoUrl,
-      hall_preference:   form.hall_preference.trim() || null,
+      hall_preference:   form.hall_preference.length ? form.hall_preference.join(', ') : null,
+      hall_points:       form.hall_points !== '' ? form.hall_points : null,
       move_in_semester:  form.move_in_semester || null,
       diet:              form.diet || null,
       wake_time:         form.wake_time,
       sleep_time:        form.sleep_time,
-      study_location:    form.study_location || null,
+      study_location:    form.study_location.length ? form.study_location.join(', ') : null,
       social_style:      form.social_style || null,
       guest_frequency:   form.guest_frequency || null,
       cleanliness:       form.cleanliness || null,
@@ -277,7 +342,21 @@ export default function EditProfile() {
     navigate('/app/profile')
   }
 
-  const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad']
+  const isY1 = form.year === 'Y1' || form.year === 'Exchange'
+
+  const toggleHall = (hall: string) => {
+    set('hall_preference', form.hall_preference.includes(hall)
+      ? form.hall_preference.filter(h => h !== hall)
+      : [...form.hall_preference, hall]
+    )
+  }
+
+  const toggleStudy = (loc: StudyLocation) => {
+    set('study_location', form.study_location.includes(loc)
+      ? form.study_location.filter(l => l !== loc)
+      : [...form.study_location, loc]
+    )
+  }
 
   return (
     <div className="min-h-screen bg-cream">
@@ -349,32 +428,76 @@ export default function EditProfile() {
             {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-        <input
-          type="text" placeholder="Faculty / School" value={form.faculty}
+        <select
+          value={form.faculty}
           onChange={e => set('faculty', e.target.value)}
-          className="w-full bg-sand rounded-xl px-4 py-3.5 font-dm text-wb placeholder-wb3 border border-transparent focus:border-terra focus:outline-none text-sm"
-        />
-        <input
-          type="text" placeholder="Nationality" value={form.nationality}
+          className={`w-full bg-sand rounded-xl px-4 py-3.5 font-dm border border-transparent focus:border-terra focus:outline-none text-sm ${form.faculty ? 'text-wb' : 'text-wb3'}`}
+        >
+          <option value="" disabled>Faculty / School</option>
+          {FACULTIES.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+        <select
+          value={form.nationality}
           onChange={e => set('nationality', e.target.value)}
-          className="w-full bg-sand rounded-xl px-4 py-3.5 font-dm text-wb placeholder-wb3 border border-transparent focus:border-terra focus:outline-none text-sm"
-        />
+          className={`w-full bg-sand rounded-xl px-4 py-3.5 font-dm border border-transparent focus:border-terra focus:outline-none text-sm ${form.nationality ? 'text-wb' : 'text-wb3'}`}
+        >
+          <option value="" disabled>Nationality</option>
+          {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
 
         {/* ── Hall ────────────────────────────── */}
         <Section title="Accommodation" />
-        <input
-          type="text" placeholder="Hall preference" value={form.hall_preference}
-          onChange={e => set('hall_preference', e.target.value)}
-          className="w-full bg-sand rounded-xl px-4 py-3.5 font-dm text-wb placeholder-wb3 border border-transparent focus:border-terra focus:outline-none text-sm"
-        />
-        <div className="flex gap-2">
-          {(['Sem1', 'Sem2'] as Semester[]).map(s => (
-            <OptionCard
-              key={s} label={s === 'Sem1' ? 'Semester 1' : 'Semester 2'}
-              selected={form.move_in_semester === s}
-              onSelect={() => set('move_in_semester', s)}
-            />
-          ))}
+        {!isY1 && (
+          <>
+            <div>
+              <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide mb-2">Hall points</p>
+              <div className="flex gap-2 flex-wrap">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(pt => (
+                  <button
+                    key={pt}
+                    onClick={() => set('hall_points', pt)}
+                    className={`w-10 h-10 rounded-full font-dm text-sm font-medium border transition-all active:scale-95 ${
+                      form.hall_points === pt
+                        ? 'bg-terra-light border-terra text-terra'
+                        : 'bg-sand border-transparent text-wb'
+                    }`}
+                  >
+                    {pt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide mb-2">Hall preference</p>
+              <div className="flex flex-wrap gap-2">
+                {NTU_HALLS.map(hall => (
+                  <button
+                    key={hall}
+                    onClick={() => toggleHall(hall)}
+                    className={`px-4 py-2 rounded-full font-dm text-sm font-medium border transition-all active:scale-95 ${
+                      form.hall_preference.includes(hall)
+                        ? 'bg-terra-light border-terra text-terra'
+                        : 'bg-sand border-transparent text-wb'
+                    }`}
+                  >
+                    {hall}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        <div>
+          <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide mb-2">Moving in</p>
+          <div className="flex gap-2">
+            {(['Sem1', 'Sem2'] as Semester[]).map(s => (
+              <OptionCard
+                key={s} label={s === 'Sem1' ? 'Semester 1' : 'Semester 2'}
+                selected={form.move_in_semester === s}
+                onSelect={() => set('move_in_semester', s)}
+              />
+            ))}
+          </div>
         </div>
 
         {/* ── Diet ────────────────────────────── */}
@@ -396,15 +519,21 @@ export default function EditProfile() {
         <TimeSlider label="Bedtime" value={form.sleep_time} min={0} max={23}
           onChange={v => set('sleep_time', v)} />
         <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide">Where do you usually study?</p>
-        {([
-          { value: 'room',    label: 'In my room',           emoji: '🏠' },
-          { value: 'library', label: 'Library',              emoji: '📚' },
-          { value: 'mixed',   label: 'Mix of both',          emoji: '🔀' },
-          { value: 'cafes',   label: 'Cafes & hangout spots', emoji: '☕' },
-        ] as { value: StudyLocation; label: string; emoji: string }[]).map(o => (
-          <OptionCard key={o.value} label={o.label} emoji={o.emoji}
-            selected={form.study_location === o.value} onSelect={() => set('study_location', o.value)} />
-        ))}
+        <div className="flex flex-wrap gap-2">
+          {STUDY_OPTIONS.map(o => (
+            <button
+              key={o.value}
+              onClick={() => toggleStudy(o.value)}
+              className={`px-4 py-2 rounded-full font-dm text-sm font-medium border transition-all active:scale-95 ${
+                form.study_location.includes(o.value)
+                  ? 'bg-terra-light border-terra text-terra'
+                  : 'bg-sand border-transparent text-wb'
+              }`}
+            >
+              {o.emoji} {o.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Social ──────────────────────────── */}
         <Section title="Social style" />
