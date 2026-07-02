@@ -51,7 +51,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (localStorage.getItem('dev_bypass') === 'true') {
       setCurrentUser(mockCurrentUser)
       setProfiles(mockProfiles)
-      setActivities(mockActivity)
+      const readIds = new Set(JSON.parse(localStorage.getItem('devReadActivityIds') ?? '[]'))
+      setActivities(mockActivity.map(a => ({ ...a, is_read: readIds.has(a.id) })))
       setLikedIds(['user-001'])
       setIncomingLikeIds(['user-001', 'user-002'])
       setLoading(false)
@@ -187,10 +188,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const markActivitiesRead = () => {
-    setActivities(prev => prev.map(a => ({ ...a, is_read: true })))
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) supabase.rpc('mark_activity_read', { p_user_id: user.id })
+    setActivities(prev => {
+      const next = prev.map(a => ({ ...a, is_read: true }))
+      if (localStorage.getItem('dev_bypass') === 'true') {
+        localStorage.setItem('devReadActivityIds', JSON.stringify(next.map(a => a.id)))
+      }
+      return next
     })
+    if (localStorage.getItem('dev_bypass') !== 'true') {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) supabase.rpc('mark_activity_read', { p_user_id: user.id })
+      })
+    }
   }
 
   const updateCurrentUser = (updates: Partial<ProfileWithScore>) => {

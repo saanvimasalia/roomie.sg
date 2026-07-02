@@ -4,7 +4,54 @@ import { useOnboarding } from '../../context/OnboardingContext'
 import OnboardingLayout from '../../components/OnboardingLayout'
 import type { Year } from '../../types'
 
-const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad']
+const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad', 'Exchange']
+
+const FACULTIES = [
+  'Asian School of the Environment (ASE)',
+  'College of Computing and Data Science (CCDS)',
+  'Lee Kong Chian School of Medicine (LKCMedicine)',
+  'Nanyang Business School (NBS)',
+  'National Institute of Education (NIE)',
+  'School of Art, Design and Media (ADM)',
+  'School of Biological Sciences (SBS)',
+  'School of Chemical & Biomedical Engineering (SCBE)',
+  'School of Civil & Environmental Engineering (CEE)',
+  'School of Electrical & Electronic Engineering (EEE)',
+  'School of Humanities (SoH)',
+  'School of Materials Science & Engineering (MSE)',
+  'School of Mechanical & Aerospace Engineering (MAE)',
+  'School of Physical & Mathematical Sciences (SPMS)',
+  'School of Social Sciences (SSS)',
+  'Wee Kim Wee School of Communication and Information (WKWSCI)',
+]
+
+const NATIONALITIES = [
+  'Afghan', 'Albanian', 'Algerian', 'American', 'Andorran', 'Angolan', 'Argentinian',
+  'Armenian', 'Australian', 'Austrian', 'Azerbaijani', 'Bahraini', 'Bangladeshi',
+  'Belarusian', 'Belgian', 'Belizean', 'Beninese', 'Bhutanese', 'Bolivian',
+  'Bosnian', 'Botswanan', 'Brazilian', 'British', 'Bruneian', 'Bulgarian',
+  'Burkinabe', 'Burmese', 'Burundian', 'Cambodian', 'Cameroonian', 'Canadian',
+  'Cape Verdean', 'Central African', 'Chadian', 'Chilean', 'Chinese', 'Colombian',
+  'Comorian', 'Congolese', 'Costa Rican', 'Croatian', 'Cuban', 'Cypriot', 'Czech',
+  'Danish', 'Djiboutian', 'Dominican', 'Dutch', 'Ecuadorian', 'Egyptian',
+  'Emirati', 'Eritrean', 'Estonian', 'Ethiopian', 'Fijian', 'Finnish', 'French',
+  'Gabonese', 'Gambian', 'Georgian', 'German', 'Ghanaian', 'Greek', 'Guatemalan',
+  'Guinean', 'Haitian', 'Honduran', 'Hungarian', 'Icelandic', 'Indian',
+  'Indonesian', 'Iranian', 'Iraqi', 'Irish', 'Israeli', 'Italian', 'Ivorian',
+  'Jamaican', 'Japanese', 'Jordanian', 'Kazakh', 'Kenyan', 'Korean', 'Kuwaiti',
+  'Kyrgyz', 'Laotian', 'Latvian', 'Lebanese', 'Liberian', 'Libyan', 'Lithuanian',
+  'Luxembourgish', 'Macedonian', 'Malagasy', 'Malawian', 'Malaysian', 'Maldivian',
+  'Malian', 'Maltese', 'Mauritanian', 'Mauritian', 'Mexican', 'Moldovan',
+  'Mongolian', 'Montenegrin', 'Moroccan', 'Mozambican', 'Namibian', 'Nepali',
+  'New Zealander', 'Nicaraguan', 'Nigerien', 'Nigerian', 'Norwegian', 'Omani',
+  'Pakistani', 'Palestinian', 'Panamanian', 'Paraguayan', 'Peruvian', 'Filipino',
+  'Polish', 'Portuguese', 'Qatari', 'Romanian', 'Russian', 'Rwandan', 'Saudi',
+  'Senegalese', 'Serbian', 'Sierra Leonean', 'Singaporean', 'Slovak', 'Slovenian',
+  'Somali', 'South African', 'Spanish', 'Sri Lankan', 'Sudanese', 'Swedish',
+  'Swiss', 'Syrian', 'Taiwanese', 'Tajik', 'Tanzanian', 'Thai', 'Togolese',
+  'Trinidadian', 'Tunisian', 'Turkish', 'Turkmen', 'Ugandan', 'Ukrainian',
+  'Uruguayan', 'Uzbek', 'Venezuelan', 'Vietnamese', 'Yemeni', 'Zambian', 'Zimbabwean',
+]
 
 export default function BasicInfo() {
   const navigate = useNavigate()
@@ -99,21 +146,31 @@ export default function BasicInfo() {
           </select>
         </div>
 
-        <input
-          type="text"
-          placeholder="Faculty / School"
+        <select
           value={data.faculty}
           onChange={e => update({ faculty: e.target.value })}
-          className="w-full bg-sand rounded-xl px-4 py-3.5 font-dm text-wb placeholder-wb3 border border-transparent focus:border-terra focus:outline-none text-sm"
-        />
+          className={`w-full bg-sand rounded-xl px-4 py-3.5 font-dm border border-transparent focus:border-terra focus:outline-none text-sm ${
+            data.faculty ? 'text-wb' : 'text-wb3'
+          }`}
+        >
+          <option value="" disabled>Faculty / School</option>
+          {FACULTIES.map(f => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
 
-        <input
-          type="text"
-          placeholder="Nationality"
+        <select
           value={data.nationality}
           onChange={e => update({ nationality: e.target.value })}
-          className="w-full bg-sand rounded-xl px-4 py-3.5 font-dm text-wb placeholder-wb3 border border-transparent focus:border-terra focus:outline-none text-sm"
-        />
+          className={`w-full bg-sand rounded-xl px-4 py-3.5 font-dm border border-transparent focus:border-terra focus:outline-none text-sm ${
+            data.nationality ? 'text-wb' : 'text-wb3'
+          }`}
+        >
+          <option value="" disabled>Nationality</option>
+          {NATIONALITIES.map(n => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
       </div>
     </OnboardingLayout>
   )

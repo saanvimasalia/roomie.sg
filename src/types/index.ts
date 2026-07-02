@@ -1,12 +1,12 @@
 export type University = 'NUS' | 'NTU'
-export type Year = 'Y1' | 'Y2' | 'Y3' | 'Y4' | 'Grad'
+export type Year = 'Y1' | 'Y2' | 'Y3' | 'Y4' | 'Grad' | 'Exchange'
 export type Semester = 'Sem1' | 'Sem2'
 export type Diet = 'halal' | 'vegetarian' | 'no_pork_beef' | 'none'
-export type StudyLocation = 'room' | 'library' | 'mixed' | 'cafes'
+export type StudyLocation = 'room' | 'library' | 'cafes'
 export type SocialStyle = 'introvert' | 'ambivert' | 'extrovert'
 export type GuestFrequency = 'never' | 'rarely' | 'sometimes' | 'often'
 export type Cleanliness = 'tidy' | 'average' | 'relaxed'
-export type ConnectPlatform = 'telegram' | 'whatsapp'
+export type ConnectDisplay = 'telegram' | 'whatsapp' | 'both'
 export type ActivityType = 'new_like' | 'new_match' | 'connected'
 
 export type UserProfile = {
@@ -25,6 +25,7 @@ export type UserProfile = {
   photo_url: string | null
 
   // Accommodation
+  hall_points: number | null
   hall_preference: string
   move_in_semester: Semester
 
@@ -32,7 +33,7 @@ export type UserProfile = {
   diet: Diet
   wake_time: number       // Hour 0-23
   sleep_time: number      // Hour 0-23
-  study_location: StudyLocation
+  study_location: string
   social_style: SocialStyle
   guest_frequency: GuestFrequency
   cleanliness: Cleanliness
@@ -52,8 +53,10 @@ export type UserProfile = {
   prompt_2_answer: string
 
   // Connect
-  connect_platform: ConnectPlatform
-  connect_handle: string | null
+  telegram_handle: string | null
+  whatsapp_cc: string | null
+  whatsapp_number: string | null
+  connect_display: ConnectDisplay | null
 
   // App state
   is_paused: boolean

@@ -8,14 +8,17 @@ type Props = {
   onClose: () => void
 }
 
-function buildDeepLink(profile: ProfileWithScore): string {
-  if (profile.connect_platform === 'telegram') {
-    const handle = profile.connect_handle?.replace('@', '') ?? ''
-    return `https://t.me/${handle}`
+function buildDeepLinks(profile: ProfileWithScore): { telegram?: string; whatsapp?: string } {
+  const links: { telegram?: string; whatsapp?: string } = {}
+  const display = profile.connect_display
+  if ((display === 'telegram' || display === 'both') && profile.telegram_handle) {
+    links.telegram = `https://t.me/${profile.telegram_handle.replace('@', '')}`
   }
-  // WhatsApp: strip everything except digits
-  const digits = (profile.connect_handle ?? '').replace(/\D/g, '')
-  return digits ? `https://wa.me/${digits}` : 'https://wa.me'
+  if ((display === 'whatsapp' || display === 'both') && profile.whatsapp_number) {
+    const digits = `${profile.whatsapp_cc ?? ''}${profile.whatsapp_number}`.replace(/\D/g, '')
+    links.whatsapp = digits ? `https://wa.me/${digits}` : 'https://wa.me'
+  }
+  return links
 }
 
 function buildIntroMessage(me: ProfileWithScore, them: ProfileWithScore): string {
@@ -25,7 +28,7 @@ function buildIntroMessage(me: ProfileWithScore, them: ProfileWithScore): string
 export default function ConnectModal({ profile, currentUser, onClose }: Props) {
   const [copied, setCopied] = useState(false)
   const message = buildIntroMessage(currentUser, profile)
-  const deepLink = buildDeepLink(profile)
+  const links = buildDeepLinks(profile)
 
   const handleCopy = async () => {
     try {
@@ -37,17 +40,14 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
     }
   }
 
-  const handleOpen = () => {
+  const handleOpen = (url: string) => {
     supabase.rpc('log_connect', {
       p_connector_id: currentUser.id,
       p_connected_to_id: profile.id,
     })
-    window.open(deepLink, '_blank')
+    window.open(url, '_blank')
     onClose()
   }
-
-  const platformLabel = profile.connect_platform === 'telegram' ? 'Telegram' : 'WhatsApp'
-  const platformColor = profile.connect_platform === 'telegram' ? '#229ED9' : '#25D366'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in">
@@ -55,7 +55,7 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative w-full max-w-[480px] bg-cream rounded-t-3xl px-5 pt-5 pb-10 animate-slide-up">
+      <div className="relative w-full max-w-[480px] bg-cream rounded-t-3xl px-5 pt-5 pb-28 animate-slide-up">
         {/* Handle */}
         <div className="w-10 h-1 bg-wb3 rounded-full mx-auto mb-5" />
 
@@ -63,7 +63,7 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
           Connect with {profile.name}
         </h3>
         <p className="font-dm text-sm text-wb2 mb-5">
-          Copy this intro and send it on {platformLabel}.
+          Copy this intro and send it on their preferred platform.
         </p>
 
         {/* Message preview */}
@@ -94,17 +94,31 @@ export default function ConnectModal({ profile, currentUser, onClose }: Props) {
           {copied ? '✓ Copied!' : 'Copy message'}
         </button>
 
-        {/* Open platform button */}
-        <button
-          onClick={handleOpen}
-          className="w-full text-white font-dm font-medium py-3.5 rounded-2xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-          style={{ backgroundColor: platformColor }}
-        >
-          <span>Open {platformLabel}</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg>
-        </button>
+        {/* Platform buttons */}
+        {links.telegram && (
+          <button
+            onClick={() => handleOpen(links.telegram!)}
+            className="w-full text-white font-dm font-medium py-3.5 rounded-2xl mb-2 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            style={{ backgroundColor: '#229ED9' }}
+          >
+            <span>Open Telegram</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </button>
+        )}
+        {links.whatsapp && (
+          <button
+            onClick={() => handleOpen(links.whatsapp!)}
+            className="w-full text-white font-dm font-medium py-3.5 rounded-2xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            style={{ backgroundColor: '#25D366' }}
+          >
+            <span>Open WhatsApp</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   )

@@ -1,14 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { useOnboarding } from '../../context/OnboardingContext'
 import OnboardingLayout from '../../components/OnboardingLayout'
-import OptionCard from '../../components/OptionCard'
 import { formatHour } from '../../lib/utils'
 import type { StudyLocation } from '../../types'
 
 const STUDY_OPTIONS: { value: StudyLocation; label: string; emoji: string }[] = [
   { value: 'room', label: 'In my room', emoji: '🏠' },
   { value: 'library', label: 'Library', emoji: '📚' },
-  { value: 'mixed', label: 'Mix of both', emoji: '🔀' },
   { value: 'cafes', label: 'Cafes & hangout spots', emoji: '☕' },
 ]
 
@@ -53,13 +51,20 @@ export default function Routine() {
   const navigate = useNavigate()
   const { data, update } = useOnboarding()
 
+  const toggleStudy = (val: StudyLocation) => {
+    const next = data.study_location.includes(val)
+      ? data.study_location.filter(v => v !== val)
+      : [...data.study_location, val]
+    update({ study_location: next })
+  }
+
   return (
     <OnboardingLayout
       step={6}
       title="Your daily routine"
       subtitle="Helps us match you with someone on the same schedule."
       onNext={() => navigate('/onboarding/social')}
-      nextDisabled={data.study_location === ''}
+      nextDisabled={data.study_location.length === 0}
     >
       <div className="flex flex-col gap-5">
         {/* Time sliders */}
@@ -85,16 +90,23 @@ export default function Routine() {
           <p className="font-dm text-xs font-medium text-wb2 uppercase tracking-wide mb-2">
             Where do you usually study?
           </p>
-          <div className="flex flex-col gap-2">
-            {STUDY_OPTIONS.map(opt => (
-              <OptionCard
-                key={opt.value}
-                label={opt.label}
-                emoji={opt.emoji}
-                selected={data.study_location === opt.value}
-                onSelect={() => update({ study_location: opt.value })}
-              />
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {STUDY_OPTIONS.map(opt => {
+              const selected = data.study_location.includes(opt.value)
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => toggleStudy(opt.value)}
+                  className={`px-4 py-2 rounded-full font-dm text-sm font-medium border transition-all active:scale-95 ${
+                    selected
+                      ? 'bg-terra-light border-terra text-terra'
+                      : 'bg-sand border-transparent text-wb'
+                  }`}
+                >
+                  {opt.emoji} {opt.label}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

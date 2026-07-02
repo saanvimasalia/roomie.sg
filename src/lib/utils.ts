@@ -37,12 +37,13 @@ export function getMatchReasons(me: import('../types').UserProfile, them: import
   if (me.diet !== 'none' && me.diet === them.diet)
     reasons.push(`Both ${me.diet}`)
 
-  if (
-    me.hall_preference && them.hall_preference &&
-    me.hall_preference === them.hall_preference &&
-    me.hall_preference !== 'Any hall is fine'
-  )
-    reasons.push('Same hall preference')
+  if (me.hall_preference && them.hall_preference) {
+    const myHalls = me.hall_preference.split(', ')
+    const theirHalls = them.hall_preference.split(', ')
+    const overlap = myHalls.some(h => theirHalls.includes(h))
+    if (overlap)
+      reasons.push('Same hall preference')
+  }
 
   const sleepDiff = Math.abs(me.sleep_time - them.sleep_time)
   if (sleepDiff <= 2 || sleepDiff >= 22)
@@ -55,8 +56,12 @@ export function getMatchReasons(me: import('../types').UserProfile, them: import
   if (me.social_style === them.social_style || me.social_style === 'ambivert' || them.social_style === 'ambivert')
     reasons.push('Compatible social style')
 
-  if (me.study_location === them.study_location)
-    reasons.push('Same study style')
+  if (me.study_location && them.study_location) {
+    const myLocs = me.study_location.split(', ')
+    const theirLocs = them.study_location.split(', ')
+    if (myLocs.some(l => theirLocs.includes(l)))
+      reasons.push('Same study style')
+  }
 
   if (me.prefers_quiet === them.prefers_quiet)
     reasons.push(me.prefers_quiet ? 'Both prefer quiet' : 'Both okay with noise')

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 
 type Props = {
   step: number // 3–11
@@ -23,6 +23,11 @@ export default function OnboardingLayout({
   children,
 }: Props) {
   const navigate = useNavigate()
+
+  if (localStorage.getItem('onboardingComplete') === 'true') {
+    return <Navigate to="/app/discover" replace />
+  }
+
   const formStep = step - 2 // converts step 3 → 1, step 11 → 9
   const progress = (formStep / FORM_STEPS) * 100
 

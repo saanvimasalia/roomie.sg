@@ -219,8 +219,7 @@ export default function Profile() {
             <div className="flex-1 text-left">
               <p className="font-dm text-sm font-medium text-wb">Connect via</p>
               <p className="font-dm text-xs text-wb3">
-                {currentUser.connect_platform === 'telegram' ? 'Telegram' : 'WhatsApp'}
-                {currentUser.connect_handle ? ` · ${currentUser.connect_platform === 'telegram' ? '@' : ''}${currentUser.connect_handle}` : ''}
+                {currentUser.connect_display === 'both' ? 'Telegram & WhatsApp' : currentUser.connect_display === 'telegram' ? 'Telegram' : currentUser.connect_display === 'whatsapp' ? 'WhatsApp' : 'Not set'}
               </p>
             </div>
           </div>

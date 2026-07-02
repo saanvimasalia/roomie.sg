@@ -90,6 +90,20 @@ export default function Discover() {
   const [connectProfile, setConnectProfile] = useState<ProfileWithScore | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState<FilterCategory[]>([])
+  const [seenMatchIds, setSeenMatchIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('seenMatchIds') ?? '[]')) } catch { return new Set() }
+  })
+
+  const handleTabChange = (tab: SubTab) => {
+    setActiveTab(tab)
+    if (tab === 'matches') {
+      setSeenMatchIds(prev => {
+        const next = new Set([...prev, ...mutualMatchIds])
+        localStorage.setItem('seenMatchIds', JSON.stringify([...next]))
+        return next
+      })
+    }
+  }
 
   const handleLike = async (profile: ProfileWithScore) => {
     const wasLiked = likedIds.includes(profile.id)
@@ -164,14 +178,14 @@ export default function Discover() {
           {tabs.map(tab => (
             <button
               key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
+              onClick={() => handleTabChange(tab.value)}
               className={`flex-1 py-2.5 rounded-xl font-dm text-sm font-medium transition-all relative ${
                 activeTab === tab.value ? 'bg-white text-wb shadow-sm' : 'text-wb3'
               }`}
             >
               {tab.label}
               {/* Unread dot for Matches tab */}
-              {tab.value === 'matches' && matchesFeed.length > 0 && activeTab !== 'matches' && (
+              {tab.value === 'matches' && mutualMatchIds.some(id => !seenMatchIds.has(id)) && activeTab !== 'matches' && (
                 <span className="absolute top-1.5 right-2 w-1.5 h-1.5 bg-terra rounded-full" />
               )}
             </button>
