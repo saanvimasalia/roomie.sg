@@ -60,7 +60,7 @@ export default function Verify() {
 
   const handleSignup = async () => {
     if (!isValidUniEmail) {
-      setError('Please use your .nus.edu.sg or .ntu.edu.sg email.')
+      setError('Please use your .ntu.edu.sg email.')
       return
     }
     if (password.length < 8) {
