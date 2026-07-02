@@ -34,7 +34,7 @@ export default function Splash() {
         </div>
         <h1 className="font-syne text-4xl font-extrabold text-wb tracking-tight">roomie.sg</h1>
         <p className="font-dm text-wb2 text-base text-center leading-snug">
-          Find your perfect NUS or NTU<br />dorm roommate
+          Find your perfect NTU<br />dorm roommate
         </p>
       </div>
 
@@ -53,10 +53,10 @@ export default function Splash() {
           Log in
         </button>
         <p className="font-dm text-xs text-wb3 text-center mt-2">
-          Only .nus.edu.sg and .ntu.edu.sg emails
+          Only .ntu.edu.sg emails
         </p>
 
-        {/* ── Dev bypass (remove before launch) ── */}
+        {/* ── Dev bypass (disabled) ──
         <div className="mt-4 pt-4 border-t border-sand flex flex-col gap-2">
           <p className="font-dm text-xs text-wb3 text-center">Dev only</p>
           <div className="flex gap-2">
@@ -74,6 +74,7 @@ export default function Splash() {
             </button>
           </div>
         </div>
+        ── */}
       </div>
     </div>
   )
