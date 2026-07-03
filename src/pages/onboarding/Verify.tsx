@@ -75,8 +75,9 @@ export default function Verify() {
     setLoading(true)
     setError('')
 
-    const { error: authError } = await supabase.auth.signInWithOtp({
+    const { error: authError } = await supabase.auth.signUp({
       email,
+      password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
 
@@ -87,8 +88,6 @@ export default function Verify() {
       return
     }
 
-    // Store password for use at end of onboarding (after OTP redirect)
-    localStorage.setItem('signup_password', password)
     update({ email, university })
     setSent(true)
   }

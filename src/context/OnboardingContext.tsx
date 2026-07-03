@@ -118,11 +118,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }
 
   const submitProfile = async (): Promise<{ error: string | null }> => {
-    if (localStorage.getItem('dev_bypass') === 'true') {
-      reset()
-      return { error: null }
-    }
-
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) return { error: 'Not signed in.' }
 

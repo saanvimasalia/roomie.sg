@@ -9,12 +9,6 @@ export default function AuthCallback() {
     async function handleSession(session: import('@supabase/supabase-js').Session) {
       localStorage.removeItem('auth_intent')
 
-      const chosenPassword = localStorage.getItem('signup_password')
-      if (chosenPassword) {
-        await supabase.auth.updateUser({ password: chosenPassword })
-        localStorage.removeItem('signup_password')
-      }
-
       const { data: profile } = await supabase
         .from('profiles')
         .select('name')

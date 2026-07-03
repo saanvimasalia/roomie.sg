@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { getMatchReasons } from '../lib/utils'
-import { mockCurrentUser, mockProfiles, mockActivity } from '../lib/mockData'
 import type { ProfileWithScore, Activity, UserProfile, MatchLabel } from '../types'
 
 type ActorProfile = { id: string; name: string; photo_url: string | null }
@@ -31,9 +30,7 @@ function scoreToLabel(score: number): MatchLabel {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<ProfileWithScore | null>(
-    localStorage.getItem('dev_bypass') === 'true' ? mockCurrentUser : null
-  )
+  const [currentUser, setCurrentUser] = useState<ProfileWithScore | null>(null)
   const [profiles, setProfiles] = useState<ProfileWithScore[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
   const [actorProfileMap, setActorProfileMap] = useState<Record<string, ActorProfile>>({})
@@ -47,17 +44,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const fetchAll = async () => {
     setLoading(true)
-
-    if (localStorage.getItem('dev_bypass') === 'true') {
-      setCurrentUser(mockCurrentUser)
-      setProfiles(mockProfiles)
-      const readIds = new Set(JSON.parse(localStorage.getItem('devReadActivityIds') ?? '[]'))
-      setActivities(mockActivity.map(a => ({ ...a, is_read: readIds.has(a.id) })))
-      setLikedIds(['user-001'])
-      setIncomingLikeIds(['user-001', 'user-002'])
-      setLoading(false)
-      return
-    }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
@@ -188,18 +174,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const markActivitiesRead = () => {
-    setActivities(prev => {
-      const next = prev.map(a => ({ ...a, is_read: true }))
-      if (localStorage.getItem('dev_bypass') === 'true') {
-        localStorage.setItem('devReadActivityIds', JSON.stringify(next.map(a => a.id)))
-      }
-      return next
+    setActivities(prev => prev.map(a => ({ ...a, is_read: true })))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.rpc('mark_activity_read', { p_user_id: user.id })
     })
-    if (localStorage.getItem('dev_bypass') !== 'true') {
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) supabase.rpc('mark_activity_read', { p_user_id: user.id })
-      })
-    }
   }
 
   const updateCurrentUser = (updates: Partial<ProfileWithScore>) => {

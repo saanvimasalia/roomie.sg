@@ -55,26 +55,6 @@ export default function Splash() {
         <p className="font-dm text-xs text-wb3 text-center mt-2">
           Only .ntu.edu.sg emails
         </p>
-
-        {/* ── Dev bypass (disabled) ──
-        <div className="mt-4 pt-4 border-t border-sand flex flex-col gap-2">
-          <p className="font-dm text-xs text-wb3 text-center">Dev only</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => { localStorage.setItem('dev_bypass', 'true'); navigate('/onboarding/basic-info') }}
-              className="flex-1 bg-wb3/20 text-wb2 font-dm text-xs font-medium py-2.5 rounded-xl active:scale-95 transition-transform"
-            >
-              Temp create account
-            </button>
-            <button
-              onClick={() => { localStorage.setItem('dev_bypass', 'true'); navigate('/app/discover') }}
-              className="flex-1 bg-wb3/20 text-wb2 font-dm text-xs font-medium py-2.5 rounded-xl active:scale-95 transition-transform"
-            >
-              Temp log in
-            </button>
-          </div>
-        </div>
-        ── */}
       </div>
     </div>
   )
