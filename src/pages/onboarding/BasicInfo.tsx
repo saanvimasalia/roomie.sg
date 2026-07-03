@@ -1,7 +1,8 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useOnboarding } from '../../context/OnboardingContext'
 import OnboardingLayout from '../../components/OnboardingLayout'
+import { validateImageFile } from '../../lib/utils'
 import type { Year } from '../../types'
 
 const YEARS: Year[] = ['Y1', 'Y2', 'Y3', 'Y4', 'Grad', 'Exchange']
@@ -57,6 +58,7 @@ export default function BasicInfo() {
   const navigate = useNavigate()
   const { data, update, setPhotoFile } = useOnboarding()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [photoError, setPhotoError] = useState('')
 
   const isValid =
     data.name.trim() !== '' &&
@@ -69,10 +71,18 @@ export default function BasicInfo() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setPhotoFile(file)
-      update({ photo_url: URL.createObjectURL(file) })
+    if (!file) return
+
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setPhotoError(validationError)
+      e.target.value = ''
+      return
     }
+
+    setPhotoError('')
+    setPhotoFile(file)
+    update({ photo_url: URL.createObjectURL(file) })
   }
 
   return (
@@ -102,6 +112,9 @@ export default function BasicInfo() {
         <p className="font-dm text-xs text-wb3 mt-2">
           {data.photo_url ? 'Tap to change' : 'Add photo (optional)'}
         </p>
+        {photoError && (
+          <p className="font-dm text-xs text-red-500 mt-1">{photoError}</p>
+        )}
         <input
           ref={fileInputRef}
           type="file"

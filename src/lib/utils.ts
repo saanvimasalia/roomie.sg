@@ -72,6 +72,15 @@ export function getMatchReasons(me: import('../types').UserProfile, them: import
   return reasons.slice(0, 5)
 }
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+export function validateImageFile(file: File): string | null {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return 'Please choose a JPG, PNG, or WEBP image.'
+  if (file.size > MAX_IMAGE_BYTES) return 'Image must be under 5MB.'
+  return null
+}
+
 export function deriveUniversity(email: string): 'NUS' | 'NTU' | null {
   if (email.endsWith('@e.ntu.edu.sg') || email.endsWith('@ntu.edu.sg')) return 'NTU'
   if (

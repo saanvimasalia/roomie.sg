@@ -4,7 +4,7 @@ import { useAppContext } from '../../context/AppContext'
 import OptionCard from '../../components/OptionCard'
 import Toggle from '../../components/Toggle'
 import Avatar from '../../components/Avatar'
-import { formatHour } from '../../lib/utils'
+import { formatHour, validateImageFile } from '../../lib/utils'
 import { supabase } from '../../lib/supabase'
 import type {
   Year, Semester, Diet, StudyLocation,
@@ -267,17 +267,30 @@ export default function EditProfile() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setPhotoFile(file)
-      set('photo_url', URL.createObjectURL(file))
+    if (!file) return
+
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setSaveError(validationError)
+      e.target.value = ''
+      return
     }
+
+    setSaveError('')
+    setPhotoFile(file)
+    set('photo_url', URL.createObjectURL(file))
   }
 
   const handleSave = async () => {
     setSaving(true)
     setSaveError('')
 
-    let photoUrl = form.photo_url
+    // `form.photo_url` holds whatever's on screen (a signed URL from load,
+    // or a local blob preview) — neither is safe to persist. What we store
+    // in the DB is always the deterministic storage path; what we show on
+    // screen after saving is a freshly-minted signed URL.
+    let photoPath: string | null = currentUser.photo_url ? `${currentUser.id}/avatar` : null
+    let photoDisplayUrl = form.photo_url
 
     if (photoFile) {
       const { error: uploadError } = await supabase.storage
@@ -288,10 +301,11 @@ export default function EditProfile() {
         setSaving(false)
         return
       }
-      const { data: { publicUrl } } = supabase.storage
+      photoPath = `${currentUser.id}/avatar`
+      const { data: signedData } = await supabase.storage
         .from('avatars')
-        .getPublicUrl(`${currentUser.id}/avatar`)
-      photoUrl = publicUrl
+        .createSignedUrl(photoPath, 60 * 60 * 24)
+      photoDisplayUrl = signedData?.signedUrl ?? null
     }
 
     const updates = {
@@ -300,7 +314,7 @@ export default function EditProfile() {
       year:              form.year || null,
       faculty:           form.faculty.trim() || null,
       nationality:       form.nationality.trim() || null,
-      photo_url:         photoUrl,
+      photo_url:         photoPath,
       hall_preference:   form.hall_preference.length ? form.hall_preference.join(', ') : null,
       hall_points:       form.hall_points !== '' ? form.hall_points : null,
       move_in_semester:  form.move_in_semester || null,
@@ -338,7 +352,7 @@ export default function EditProfile() {
       return
     }
 
-    updateCurrentUser({ ...updates, photo_url: photoUrl } as Partial<ProfileWithScore>)
+    updateCurrentUser({ ...updates, photo_url: photoDisplayUrl } as Partial<ProfileWithScore>)
     navigate('/app/profile')
   }
 

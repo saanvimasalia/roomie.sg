@@ -130,17 +130,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
       if (uploadError) return { error: uploadError.message }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(`${user.id}/avatar`)
-
-      photoUrl = publicUrl
+      // The avatars bucket is private — store the storage path, not a
+      // public URL. Readers resolve it to a short-lived signed URL.
+      photoUrl = `${user.id}/avatar`
     }
 
-    const { error: insertError } = await supabase.from('profiles').upsert({
-      id: user.id,
-      email: data.email,
-      university: data.university,
+    const { error: insertError } = await supabase.from('profiles').update({
       name: data.name,
       age: data.age ? Number(data.age) : null,
       year: data.year || null,
@@ -172,8 +167,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       whatsapp_number: data.whatsapp_number || null,
       connect_display: data.connect_display || null,
       is_paused: false,
-      is_verified: true,
-    })
+    }).eq('id', user.id)
 
     if (insertError) return { error: insertError.message }
 

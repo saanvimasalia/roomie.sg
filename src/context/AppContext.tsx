@@ -29,6 +29,21 @@ function scoreToLabel(score: number): MatchLabel {
   return 'Decent match'
 }
 
+// The avatars bucket is private — `photo_url` in the DB is a storage path,
+// not a usable URL. Batch-resolve every path referenced in one fetch into
+// short-lived signed URLs (single API call instead of one per profile).
+async function resolvePhotoUrlMap(paths: (string | null)[]): Promise<Map<string, string>> {
+  const unique = [...new Set(paths.filter((p): p is string => !!p))]
+  if (unique.length === 0) return new Map()
+
+  const { data } = await supabase.storage.from('avatars').createSignedUrls(unique, 60 * 60 * 24)
+  return new Map(
+    (data ?? [])
+      .filter((d): d is typeof d & { path: string; signedUrl: string } => !!d.path && !!d.signedUrl)
+      .map(d => [d.path, d.signedUrl])
+  )
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<ProfileWithScore | null>(null)
   const [profiles, setProfiles] = useState<ProfileWithScore[]>([])
@@ -59,16 +74,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error('Failed to load profile:', profileError.message)
     }
 
-    if (currentUserData) {
-      setCurrentUser({
-        ...currentUserData,
-        score: 100,
-        label: 'Great match',
-        match_reasons: [],
-        is_mutual_match: false,
-      })
-    }
-
     // Fetch feed, likes and activity in parallel
     const [
       { data: feedData },
@@ -91,45 +96,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Fetch profiles for activity actors (may include paused users not in Discover feed)
     const actorIds = [...new Set(resolvedActivities.map((a: Activity) => a.actor_id))]
+    let actorData: ActorProfile[] | null = null
     if (actorIds.length > 0) {
-      const { data: actorData } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('id, name, photo_url')
         .in('id', actorIds)
-      if (actorData) {
-        setActorProfileMap(
-          Object.fromEntries((actorData as ActorProfile[]).map(p => [p.id, p]))
-        )
-      }
+      actorData = data
     }
 
     // Fetch full profiles for the feed
+    let profilesData: UserProfile[] | null = null
+    let scoreMap = new Map<string, { score: number; is_mutual: boolean }>()
     if (feedData && feedData.length > 0) {
       const profileIds = feedData.map((r: { profile_id: string }) => r.profile_id)
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', profileIds)
+      const { data } = await supabase.from('profiles').select('*').in('id', profileIds)
+      profilesData = data
+      type FeedRow = { profile_id: string; score: number; is_mutual: boolean }
+      scoreMap = new Map(
+        (feedData as FeedRow[]).map(r => [r.profile_id, { score: r.score, is_mutual: r.is_mutual }])
+      )
+    }
 
-      if (profilesData && currentUserData) {
-        type FeedRow = { profile_id: string; score: number; is_mutual: boolean }
-        const scoreMap = new Map(
-          (feedData as FeedRow[]).map(r => [r.profile_id, { score: r.score, is_mutual: r.is_mutual }])
+    // Batch-resolve every photo path referenced anywhere into signed URLs
+    // in a single call, then apply before touching state
+    const urlMap = await resolvePhotoUrlMap([
+      currentUserData?.photo_url ?? null,
+      ...(actorData ?? []).map(a => a.photo_url),
+      ...(profilesData ?? []).map(p => p.photo_url),
+    ])
+    const resolveUrl = (path: string | null) => (path ? urlMap.get(path) ?? null : null)
+
+    if (currentUserData) {
+      setCurrentUser({
+        ...currentUserData,
+        photo_url: resolveUrl(currentUserData.photo_url),
+        score: 100,
+        label: 'Great match',
+        match_reasons: [],
+        is_mutual_match: false,
+      })
+    }
+
+    if (actorData) {
+      setActorProfileMap(
+        Object.fromEntries(
+          actorData.map(p => [p.id, { ...p, photo_url: resolveUrl(p.photo_url) }])
         )
+      )
+    }
 
-        const merged: ProfileWithScore[] = profilesData.map((p: UserProfile) => {
-          const s = scoreMap.get(p.id) ?? { score: 0, is_mutual: false }
-          return {
-            ...p,
-            score: s.score,
-            label: scoreToLabel(s.score),
-            is_mutual_match: s.is_mutual,
-            match_reasons: getMatchReasons(currentUserData as UserProfile, p),
-          }
-        })
+    if (profilesData && currentUserData) {
+      const merged: ProfileWithScore[] = profilesData.map((p: UserProfile) => {
+        const s = scoreMap.get(p.id) ?? { score: 0, is_mutual: false }
+        return {
+          ...p,
+          photo_url: resolveUrl(p.photo_url),
+          score: s.score,
+          label: scoreToLabel(s.score),
+          is_mutual_match: s.is_mutual,
+          match_reasons: getMatchReasons(currentUserData as UserProfile, p),
+        }
+      })
 
-        setProfiles(merged)
-      }
+      setProfiles(merged)
     }
 
     setLoading(false)
